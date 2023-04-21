@@ -92,5 +92,18 @@ ggplot(links_data, aes(x=Freq)) +
                      breaks = seq(0, 100, 10), 
                      expand = c(0, 0)) +
   theme_light()
+# Pregunta 2.2 
 
+# Añadiendo si el link es interno o externo
+links_data$Hyperlink_type <- ifelse(grepl("^https://www.mediawiki.org", links_data$Final_Url), "Interno", "Externo")
+
+# Hallando la frecuencia
+freq_link <- table(links_data$Hyperlink_type)
+# Mostrando gráfica de barras
+ggplot(data.frame(Hyperlink_type = names(freq_link), count = as.numeric(freq_link)), aes(x=Hyperlink_type, y=count, fill = Hyperlink_type)) +  
+  geom_bar(stat="identity") +
+  labs(title="Enlaces internos vs externos", x="Tipo de enlace", y="Cantidad") +
+  theme_light() +
+  scale_fill_manual(values = c("#6833FF", "#D433FF")) +
+  scale_y_continuous(limits = c(0, 150), breaks = seq(0, 150, 20))
 
