@@ -1,5 +1,9 @@
 library(httr)
 library(XML)
+library(stringr)
+library(dplyr) 
+library(purrr)
+library(ggplot2)
 
 # Pregunta 1.1 
 # Almacenando la URl 
@@ -35,3 +39,14 @@ url_hyperlink[null_href] <- NA
 
 name_hyperlink <- unlist(name_hyperlink)
 url_hyperlink  <- unlist(url_hyperlink)
+
+# Pregunta 1.4 
+# Creando una tabla con el texto y su respectivo url del enlace
+links_tables <- data.frame(Text = name_hyperlink, Url = url_hyperlink)
+
+# Convirtiendo a data.frame
+concurrences <- as.data.frame(table(links_tables))
+
+# Filtrando solo los enlaces existentes, es decir todos lo que tenga >0 en la columna freqq
+links_data <- filter(concurrences, Freq > 0) %>% arrange(desc(Freq))
+View(links_data)
