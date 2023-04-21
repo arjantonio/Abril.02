@@ -57,15 +57,11 @@ base_url <- "https://www.mediawiki.org"
 
 # Validando los carácteres al inicio de la columna URL
 links_data$Final_Url <- case_when(
-  # validando los carácteres al inicio de la URL
-  grepl("^/wiki/", links_data$Url) ~ paste0(base_url, links_data$Url),
-  grepl("^/w/", links_data$Url) ~ paste0(base_url, links_data$Url),
-  grepl("^//", links_data$Url) ~ paste0(base_url, links_data$Url),
+  grepl("^/wiki/|^/w/|^//", links_data$Url) | grepl("^#", links_data$Url) ~ paste0(base_url, links_data$Url),
   grepl("^https", links_data$Url) ~ links_data$Url,
-  grepl("^#", links_data$Url) ~ paste0(base_url,"/wiki/MediaWiki", links_data$Url),
   TRUE ~ NA_character_
 )
-
+View(links_data)
 # Incorporando el valor status_code 
 # Demora 1 minuto
 # Recorriendo los datos para incorporar HEAD y hallar el status_code
