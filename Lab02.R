@@ -1,9 +1,14 @@
+library(GET)
+library(readr)
+library(rvest)
 library(httr)
 library(XML)
 library(stringr)
+library(tidyr)
 library(dplyr) 
 library(purrr)
 library(ggplot2)
+library(ggpubr)
 library(gridExtra)
 # Pregunta 1.1 
 # Almacenando la URl 
@@ -57,29 +62,34 @@ base_url <- "https://www.mediawiki.org"
 
 # Validando los carácteres al inicio de la columna URL
 links_data$Final_Url <- case_when(
-  grepl("^/wiki/|^/w/|^//", links_data$Url) | grepl("^#", links_data$Url) ~ paste0(base_url, links_data$Url),
+  # validando los carácteres al inicio de la URL
+  grepl("^/wiki/", links_data$Url) ~ paste0(base_url, links_data$Url),
+  grepl("^/w/", links_data$Url) ~ paste0(base_url, links_data$Url),
+  grepl("^//", links_data$Url) ~ paste0(base_url, links_data$Url),
   grepl("^https", links_data$Url) ~ links_data$Url,
+  grepl("^#", links_data$Url) ~ paste0(base_url,"/wiki/MediaWiki", links_data$Url),
   TRUE ~ NA_character_
 )
-View(links_data)
+
 # Incorporando el valor status_code 
 # Demora 1 minuto
 # Recorriendo los datos para incorporar HEAD y hallar el status_code
+cat("En Proceso... /n")
 status_codes <- map(links_data$Final_Url, HEAD)
 # Agregando una columna con el status_code respectivo
 links_data$Status_Code <- map(status_codes, status_code)
 # Convirtiendo de lista a character
 links_data$Status_Code <- as.character(links_data$Status_Code)
 View(links_data)
-cat("Proceso terminado")
+cat("Proceso terminado /n")
 
 # Pregunta 2
 # Pregunta 2.1
 # Validando si la URL es absoluta o relativa
-links_data$Url_type <- ifelse(grepl("^http", links_data$Url), "Absoluta", "Relativa")
+links_data$Referencia <- ifelse(grepl("^http", links_data$Url), "URL_Absoluta", "URL_Relativa")
 # Agregando la gráfica histograma
 histogram <- ggplot(links_data, aes(x=Freq)) + 
-  geom_histogram(aes(fill=Url_type), 
+  geom_histogram(aes(fill=Referencia), 
                  binwidth = 1, 
                  position = "dodge") +
   scale_fill_manual(values=c("#FF5733", "#6B33FF")) +
@@ -87,22 +97,29 @@ histogram <- ggplot(links_data, aes(x=Freq)) +
   scale_y_continuous(limits = c(0, 100), 
                      breaks = seq(0, 100, 10), 
                      expand = c(0, 0)) +
-  theme_light()
+  theme_light() 
+  # Centrando el Titulo
+  histogram <- histogram +
+  theme(plot.title = element_text(hjust = 0.5, size = 18))
+grid.arrange(histogram, ncol=1)
 # Pregunta 2.2 
 
 # Añadiendo si el link es interno o externo
-links_data$Hyperlink_type <- ifelse(grepl("^https://www.mediawiki.org", links_data$Final_Url), "Interno", "Externo")
+links_data$Referencias <- ifelse(grepl("^https://www.mediawiki.org", links_data$Final_Url), "Enlace_Interno", "Enlace_Externo")
 
 # Hallando la frecuencia
-freq_link <- table(links_data$Hyperlink_type)
+freq_link <- table(links_data$Referencias)
 # Mostrando gráfica de barras
-bar_graphic <- ggplot(data.frame(Hyperlink_type = names(freq_link), count = as.numeric(freq_link)), aes(x=Hyperlink_type, y=count, fill = Hyperlink_type)) +  
+bar_graphic <- ggplot(data.frame(Referencias = names(freq_link), count = as.numeric(freq_link)), aes(x=Referencias, y=count, fill = Referencias)) +  
   geom_bar(stat="identity") +
-  labs(title="Enlaces internos vs externos", x="Tipo de enlace", y="Cantidad") +
+  labs(title="Internos vs Externos", x="Tipo de enlace", y="Cantidad") +
   theme_light() +
   scale_fill_manual(values = c("#6833FF", "#D433FF")) +
   scale_y_continuous(limits = c(0, 150), breaks = seq(0, 150, 20))
-
+# Centrando el Titulo
+bar_graphic <- bar_graphic +
+theme(plot.title = element_text(hjust = 0.5, size = 18))
+grid.arrange(bar_graphic, ncol=1)
 # Pregunta 2.3
 # Hallando la frecuencia del status_code
 code_freq <- table(links_data$Status_Code)
@@ -121,6 +138,8 @@ chart_graphic <- ggplot(code_data, aes(x="", y=Percentage, fill=Status_Code)) +
   ggtitle("Pie chart") +
   theme_void() +
   geom_text(aes(label = paste0(Percentage, "%")), position = position_stack(vjust = 0.5), size = 3)
-
+# Centrando el Titulo
+chart_graphic <- chart_graphic +
+    theme(plot.title = element_text(hjust = 0.5, size = 18))
 # Mostrando las tres gráficas en una sola figura
 grid.arrange(histogram, bar_graphic, chart_graphic, ncol=3)
