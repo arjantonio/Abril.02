@@ -76,3 +76,21 @@ links_data$Status_Code <- map(status_codes, status_code)
 links_data$Status_Code <- as.character(links_data$Status_Code)
 View(links_data)
 cat("Proceso terminado")
+
+# Pregunta 2
+# Pregunta 2.1
+# Validando si la URL es absoluta o relativa
+links_data$Url_type <- ifelse(grepl("^http", links_data$Url), "Absoluta", "Relativa")
+# Agregando la gráfica histograma
+ggplot(links_data, aes(x=Freq)) + 
+  geom_histogram(aes(fill=Url_type), 
+                 binwidth = 1, 
+                 position = "dodge") +
+  scale_fill_manual(values=c("#FF5733", "#6B33FF")) +
+  labs(x = "Frecuencia de apariciones", y = "N° de enlaces", title ="Enlaces MediaWiki") +
+  scale_y_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, 10), 
+                     expand = c(0, 0)) +
+  theme_light()
+
+
