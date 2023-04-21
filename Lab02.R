@@ -49,4 +49,30 @@ concurrences <- as.data.frame(table(links_tables))
 
 # Filtrando solo los enlaces existentes, es decir todos lo que tenga >0 en la columna freqq
 links_data <- filter(concurrences, Freq > 0) %>% arrange(desc(Freq))
+
+
+# Pregunta 1.5
+# Agregando la URL completa 
+base_url <- "https://www.mediawiki.org"
+
+# Validando los carácteres al inicio de la columna URL
+links_data$Final_Url <- case_when(
+  # validando los carácteres al inicio de la URL
+  grepl("^/wiki/", links_data$Url) ~ paste0(base_url, links_data$Url),
+  grepl("^/w/", links_data$Url) ~ paste0(base_url, links_data$Url),
+  grepl("^//", links_data$Url) ~ paste0(base_url, links_data$Url),
+  grepl("^https", links_data$Url) ~ links_data$Url,
+  grepl("^#", links_data$Url) ~ paste0(base_url,"/wiki/MediaWiki", links_data$Url),
+  TRUE ~ NA_character_
+)
+
+# Incorporando el valor status_code 
+# Demora 1 minuto
+# Recorriendo los datos para incorporar HEAD y hallar el status_code
+status_codes <- map(links_data$Final_Url, HEAD)
+# Agregando una columna con el status_code respectivo
+links_data$Status_Code <- map(status_codes, status_code)
+# Convirtiendo de lista a character
+links_data$Status_Code <- as.character(links_data$Status_Code)
 View(links_data)
+cat("Proceso terminado")
