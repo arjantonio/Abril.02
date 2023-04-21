@@ -4,7 +4,7 @@ library(stringr)
 library(dplyr) 
 library(purrr)
 library(ggplot2)
-
+library(gridExtra)
 # Pregunta 1.1 
 # Almacenando la URl 
 html <- GET("https://www.mediawiki.org/wiki/MediaWiki")
@@ -82,7 +82,7 @@ cat("Proceso terminado")
 # Validando si la URL es absoluta o relativa
 links_data$Url_type <- ifelse(grepl("^http", links_data$Url), "Absoluta", "Relativa")
 # Agregando la gráfica histograma
-ggplot(links_data, aes(x=Freq)) + 
+histogram <- ggplot(links_data, aes(x=Freq)) + 
   geom_histogram(aes(fill=Url_type), 
                  binwidth = 1, 
                  position = "dodge") +
@@ -100,10 +100,31 @@ links_data$Hyperlink_type <- ifelse(grepl("^https://www.mediawiki.org", links_da
 # Hallando la frecuencia
 freq_link <- table(links_data$Hyperlink_type)
 # Mostrando gráfica de barras
-ggplot(data.frame(Hyperlink_type = names(freq_link), count = as.numeric(freq_link)), aes(x=Hyperlink_type, y=count, fill = Hyperlink_type)) +  
+bar_graphic <- ggplot(data.frame(Hyperlink_type = names(freq_link), count = as.numeric(freq_link)), aes(x=Hyperlink_type, y=count, fill = Hyperlink_type)) +  
   geom_bar(stat="identity") +
   labs(title="Enlaces internos vs externos", x="Tipo de enlace", y="Cantidad") +
   theme_light() +
   scale_fill_manual(values = c("#6833FF", "#D433FF")) +
   scale_y_continuous(limits = c(0, 150), breaks = seq(0, 150, 20))
 
+# Pregunta 2.3
+# Hallando la frecuencia del status_code
+code_freq <- table(links_data$Status_Code)
+# Hallando el porcentaje en % ( o.9 a 90%)
+percentage_value <- round(prop.table(code_freq) * 100, 2)
+percentage_value <- as.numeric(percentage_value)
+# data 
+code_data <- data.frame(Status_Code = names(code_freq),
+                        Frequency = as.numeric(code_freq),
+                        Percentage = percentage_value)
+
+# Mostrando pie chart
+chart_graphic <- ggplot(code_data, aes(x="", y=Percentage, fill=Status_Code)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  ggtitle("Pie chart") +
+  theme_void() +
+  geom_text(aes(label = paste0(Percentage, "%")), position = position_stack(vjust = 0.5), size = 3)
+
+# Mostrando las tres gráficas en una sola figura
+grid.arrange(histogram, bar_graphic, chart_graphic, ncol=3)
