@@ -105,7 +105,7 @@ grid.arrange(histogram, ncol=1)
 # Pregunta 2.2 
 
 # Añadiendo si el link es interno o externo
-links_data$Referencias <- ifelse(grepl("^https://www.mediawiki.org", links_data$Final_Url), "Enlace_Interno", "Enlace_Externo")
+links_data$Referencias <- ifelse(grepl("^https://www.mediawiki.org", links_data$Final_Url), "Interno", "Externo")
 
 # Hallando la frecuencia
 freq_link <- table(links_data$Referencias)
