@@ -74,14 +74,14 @@ links_data$Final_Url <- case_when(
 # Incorporando el valor status_code 
 # Demora 1 minuto
 # Recorriendo los datos para incorporar HEAD y hallar el status_code
-cat("En Proceso... /n")
+cat("En Proceso... \n")
 status_codes <- map(links_data$Final_Url, HEAD)
 # Agregando una columna con el status_code respectivo
 links_data$Status_Code <- map(status_codes, status_code)
 # Convirtiendo de lista a character
 links_data$Status_Code <- as.character(links_data$Status_Code)
 View(links_data)
-cat("Proceso terminado /n")
+cat("Proceso terminado \n")
 
 # Pregunta 2
 # Pregunta 2.1
@@ -143,3 +143,5 @@ chart_graphic <- chart_graphic +
     theme(plot.title = element_text(hjust = 0.5, size = 18))
 # Mostrando las tres gráficas en una sola figura
 grid.arrange(histogram, bar_graphic, chart_graphic, ncol=3)
+cat("Fin\n")
+#Bajando Repositorio
