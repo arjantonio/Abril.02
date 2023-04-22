@@ -1,9 +1,11 @@
 ---
 title: "Practica2"
 output:
+  pdf_document: 
+    latex_engine: xelatex
   html_document: default
-  pdf_document: default
 date: "2023-04-21"
+
 ---
 
 ```{r setup, include=FALSE}
@@ -28,7 +30,7 @@ library(purrr)
 library(ggplot2)
 library(ggpubr)
 library(gridExtra)
-
+library(knitr)
 ```
 ### Pregunta 1
 
@@ -45,7 +47,7 @@ parsedHtml <- htmlParse(contenido, asText = TRUE)
 
 2. Analizar el contenido de la web, buscando el título de la página (que en HTML se etiqueta como “title”).
 
-```{r title, echo = TRUE}
+```{r title, eval= TRUE, echo = TRUE}
 # Obteniendo el título de la web
 xpath <- "//title"
 # Utilizando la función: xpathSApply()
@@ -73,11 +75,29 @@ url_hyperlink[null_href] <- NA
 # Convirtiendo de lista a vector los nombres y el valor del href del la etiqueta <a></a>
 name_hyperlink <- unlist(name_hyperlink)
 url_hyperlink  <- unlist(url_hyperlink)
-```
-4. Generar una tabla con cada enlace encontrado, indicando el texto que acompaña el enlace, y el número de veces que aparece un enlace con ese mismo objetivo.
-```{r table, echo = TRUE}
+
+# Creando una tabla con el texto y su respectivo url del enlace
+links_tables <- data.frame(Text = name_hyperlink, Url = url_hyperlink)
+
+kable(links_tables)
 
 ```
+4. Generar una tabla con cada enlace encontrado, indicando el texto que acompaña el enlace, y el número de veces que aparece un enlace con ese mismo objetivo.
+
+```{r link_table, echo = TRUE}
+
+# Convirtiendo a data.frame y hallando el n° de repeticiones
+concurrences <- as.data.frame(table(links_tables))
+
+# Filtrando solo los enlaces existentes, es decir todos lo que tenga >0 en la columna freq y lo ordenamos en orden alfábetico
+links_data <- filter(concurrences, Freq > 0) %>% arrange(Text)
+kable(links_data)
+
+```
+t
+
+
+
 ```{r cars}
 html <- GET("https://www.mediawiki.org/wiki/MediaWiki")
 content <- content(html, as = "text")
