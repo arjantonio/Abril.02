@@ -10,6 +10,7 @@ library(purrr)
 library(ggplot2)
 library(ggpubr)
 library(gridExtra)
+library(knitr)
 # Pregunta 1.1 
 # Almacenando la URl 
 html <- GET("https://www.mediawiki.org/wiki/MediaWiki")
@@ -32,7 +33,7 @@ cat(titulos, sep = "\n")
 # Extrayendo los nombres de la etiqueta <a></a>
 name_hyperlink <- xpathSApply(parsedHtml, "//a", xmlValue)
 #name_hyperlink 
-# Extrayendo los valores del atributo href de la etiqueta <a></>
+# Extrayendo los valores del atributo href de la etiqueta <a></a>
 url_hyperlink <- xpathSApply(parsedHtml, "//a", xmlGetAttr, "href")
 
 # Validando si los nombres de la etiqueta tienen valores null
@@ -42,19 +43,19 @@ null_href <- sapply(url_hyperlink, is.null)
 # Reemplazando los valores null por el valor NA
 name_hyperlink[null_name] <- NA
 url_hyperlink[null_href] <- NA
-
+# Convirtiendo de lista a vector los nombres y el valor del href del la etiqueta <a></a>
 name_hyperlink <- unlist(name_hyperlink)
 url_hyperlink  <- unlist(url_hyperlink)
-
-# Pregunta 1.4 
 # Creando una tabla con el texto y su respectivo url del enlace
 links_tables <- data.frame(Text = name_hyperlink, Url = url_hyperlink)
 
-# Convirtiendo a data.frame
+# Pregunta 1.4 
+
+# Convirtiendo a data.frame y hallando el n° de repeticiones
 concurrences <- as.data.frame(table(links_tables))
 
-# Filtrando solo los enlaces existentes, es decir todos lo que tenga >0 en la columna freqq
-links_data <- filter(concurrences, Freq > 0) %>% arrange(desc(Freq))
+# Filtrando solo los enlaces existentes, es decir todos lo que tenga >0 en la columna freq y lo ordenamos en orden alfábetico
+links_data <- filter(concurrences, Freq > 0) %>% arrange(Text)
 
 
 # Pregunta 1.5
@@ -64,11 +65,8 @@ base_url <- "https://www.mediawiki.org"
 # Validando los carácteres al inicio de la columna URL
 links_data$Final_Url <- case_when(
   # validando los carácteres al inicio de la URL
-  grepl("^/wiki/", links_data$Url) ~ paste0(base_url, links_data$Url),
-  grepl("^/w/", links_data$Url) ~ paste0(base_url, links_data$Url),
-  grepl("^//", links_data$Url) ~ paste0(base_url, links_data$Url),
+  grepl("^/wiki/|^/w/|^//", links_data$Url) | grepl("^#", links_data$Url) ~ paste0(base_url, links_data$Url),
   grepl("^https", links_data$Url) ~ links_data$Url,
-  grepl("^#", links_data$Url) ~ paste0(base_url,"/wiki/MediaWiki", links_data$Url),
   TRUE ~ NA_character_
 )
 
