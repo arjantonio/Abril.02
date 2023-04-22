@@ -80,46 +80,45 @@ status_codes <- map(links_data$Final_Url, HEAD)
 links_data$Status_Code <- map(status_codes, status_code)
 # Convirtiendo de lista a character
 links_data$Status_Code <- as.character(links_data$Status_Code)
-View(links_data)
+
 cat("Proceso terminado \n")
 
 # Pregunta 2
 # Pregunta 2.1
 # Validando si la URL es absoluta o relativa
-links_data$Referencia <- ifelse(grepl("^http", links_data$Url), "URL_Absoluta", "URL_Relativa")
+links_data$Url_type <- ifelse(grepl("^http", links_data$Url), "URL_Absoluta", "URL_Relativa")
 # Agregando la gráfica histograma
 histogram <- ggplot(links_data, aes(x=Freq)) + 
-  geom_histogram(aes(fill=Referencia), 
+  geom_histogram(aes(fill=Url_type), 
                  binwidth = 1, 
                  position = "dodge") +
-  scale_fill_manual(values=c("#FF5733", "#6B33FF")) +
+  scale_fill_manual(name ="Tipo de Url", values=c("#FF5733", "#6B33FF")) +
   labs(x = "Frecuencia de apariciones", y = "N° de enlaces", title ="Enlaces MediaWiki") +
   scale_y_continuous(limits = c(0, 100), 
                      breaks = seq(0, 100, 10), 
                      expand = c(0, 0)) +
-  theme_light() 
-  # Centrando el Titulo
-  histogram <- histogram +
+  theme_light()+
   theme(plot.title = element_text(hjust = 0.5, size = 18))
+ 
 grid.arrange(histogram, ncol=1)
 # Pregunta 2.2 
 
 # Añadiendo si el link es interno o externo
-links_data$Referencias <- ifelse(grepl("^https://www.mediawiki.org", links_data$Final_Url), "Interno", "Externo")
+links_data$Domain_Type <- ifelse(grepl("^https://www.mediawiki.org", links_data$Final_Url), "Interno", "Externo")
 
 # Hallando la frecuencia
-freq_link <- table(links_data$Referencias)
+freq_link <- table(links_data$Domain_Type)
 # Mostrando gráfica de barras
-bar_graphic <- ggplot(data.frame(Referencias = names(freq_link), count = as.numeric(freq_link)), aes(x=Referencias, y=count, fill = Referencias)) +  
+bar_graphic <- ggplot(data.frame(Domain_Type = names(freq_link), count = as.numeric(freq_link)), aes(x=Domain_Type, y=count, fill = Domain_Type)) +  
   geom_bar(stat="identity") +
-  labs(title="Internos vs Externos", x="Tipo de enlace", y="Cantidad") +
+  labs(title="Enlaces Internos vs Externos", x="Tipo de enlace", y="Cantidad") +
   theme_light() +
-  scale_fill_manual(values = c("#6833FF", "#D433FF")) +
-  scale_y_continuous(limits = c(0, 150), breaks = seq(0, 150, 20))
-# Centrando el Titulo
-bar_graphic <- bar_graphic +
-theme(plot.title = element_text(hjust = 0.5, size = 18))
+  scale_fill_manual( name = "Tipo de dominio", values = c("#6833FF", "#D433FF")) +
+  scale_y_continuous(limits = c(0, 150), breaks = seq(0, 150, 20)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 18))
+
 grid.arrange(bar_graphic, ncol=1)
+
 # Pregunta 2.3
 # Hallando la frecuencia del status_code
 code_freq <- table(links_data$Status_Code)
@@ -127,21 +126,20 @@ code_freq <- table(links_data$Status_Code)
 percentage_value <- round(prop.table(code_freq) * 100, 2)
 percentage_value <- as.numeric(percentage_value)
 # data 
-code_data <- data.frame(Status_Code = names(code_freq),
-                        Frequency = as.numeric(code_freq),
-                        Percentage = percentage_value)
+code_data <- data.frame(Status_Code = names(code_freq),Percentage = percentage_value)
 
 # Mostrando pie chart
 chart_graphic <- ggplot(code_data, aes(x="", y=Percentage, fill=Status_Code)) +
   geom_bar(width = 1, stat = "identity") +
   coord_polar("y", start=0) +
-  ggtitle("Pie chart") +
+  ggtitle("Códigos de estados de respuesta") +
   theme_void() +
-  geom_text(aes(label = paste0(Percentage, "%")), position = position_stack(vjust = 0.5), size = 3)
-# Centrando el Titulo
-chart_graphic <- chart_graphic +
-    theme(plot.title = element_text(hjust = 0.5, size = 18))
+  geom_text(aes(label = paste0(Percentage, "%")), position = position_stack(vjust = 0.5), size = 3) +
+  scale_fill_manual(name = "Código de respuesta" ,values=c("#cf3a69", "#7caa96")) +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 22, size = 18))
+grid.arrange(chart_graphic, ncol=1)
+
 # Mostrando las tres gráficas en una sola figura
 grid.arrange(histogram, bar_graphic, chart_graphic, ncol=3)
 cat("Fin\n")
-#Bajando Repositorio
+View(links_data)
