@@ -13,8 +13,10 @@ library(gridExtra)
 # Pregunta 1.1 
 # Almacenando la URl 
 html <- GET("https://www.mediawiki.org/wiki/MediaWiki")
+# Descargando contenido de la página web
 contenido <- content(html, as = "text")
-parsedHtml <- htmlParse(contenido)
+# Analizando el contenido de la página web
+parsedHtml <- htmlParse(contenido, asText = TRUE)
 
 # Pregunta 1.2
 # Obteniendo el título de la web
@@ -32,11 +34,10 @@ name_hyperlink <- xpathSApply(parsedHtml, "//a", xmlValue)
 #name_hyperlink 
 # Extrayendo los valores del atributo href de la etiqueta <a></>
 url_hyperlink <- xpathSApply(parsedHtml, "//a", xmlGetAttr, "href")
-#url_hyperlink
-# Validando valores null
 
-# Validando si los nombres de la etiqueta y los valores del atributo href tienen los valores null
+# Validando si los nombres de la etiqueta tienen valores null
 null_name <- sapply(name_hyperlink, is.null)
+# Validando si los valores del atributo href tienen valores null
 null_href <- sapply(url_hyperlink, is.null)
 # Reemplazando los valores null por el valor NA
 name_hyperlink[null_name] <- NA
