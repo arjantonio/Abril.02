@@ -143,8 +143,28 @@ histogram <- ggplot(links_data, aes(x=Freq)) +
 # Mostrando el histograma
  grid.arrange(histogram, ncol=1)
 
-
 ```
+2. Un gráfico de barras indicando la suma de enlaces que apuntan a otros dominios o servicios (distinto a https://www.mediawiki.org en el caso de ejemplo) vs. la suma de los otros enlaces.
+
+```{r bar_graphic, echo = TRUE}
+
+# Añadiendo si el link es interno o externo
+links_data$Domain_Type <- ifelse(grepl("^https://www.mediawiki.org", links_data$Final_Url), "Interno", "Externo")
+
+# Hallando la frecuencia
+freq_link <- table(links_data$Domain_Type)
+# Mostrando gráfica de barras
+bar_graphic <- ggplot(data.frame(Domain_Type = names(freq_link), count = as.numeric(freq_link)), aes(x=Domain_Type, y=count, fill = Domain_Type)) +  
+  geom_bar(stat="identity") +
+  labs(title="Enlaces Internos vs Externos", x="Tipo de enlace", y="Cantidad") +
+  theme_light() +
+  scale_fill_manual( name = "Tipo de dominio", values = c("#6833FF", "#D433FF")) +
+  scale_y_continuous(limits = c(0, 150), breaks = seq(0, 150, 20)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 18))
+
+grid.arrange(bar_graphic, ncol=1)
+```
+
 
 ```{r cars}
 html <- GET("https://www.mediawiki.org/wiki/MediaWiki")
