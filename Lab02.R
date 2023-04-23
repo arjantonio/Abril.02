@@ -11,6 +11,7 @@ library(ggplot2)
 library(ggpubr)
 library(gridExtra)
 library(knitr)
+library(stringr)
 # Pregunta 1.1 
 # Almacenando la URl 
 html <- GET("https://www.mediawiki.org/wiki/MediaWiki")
@@ -46,6 +47,10 @@ url_hyperlink[null_href] <- NA
 # Convirtiendo de lista a vector los nombres y el valor del href del la etiqueta <a></a>
 name_hyperlink <- unlist(name_hyperlink)
 url_hyperlink  <- unlist(url_hyperlink)
+
+# Se valida que hay texto que tiene al principio espacios pero son iguales
+# Se realiza la eliminación de los espacios al inicio
+name_hyperlink <- str_replace(name_hyperlink, "^\\s+", "")
 # Creando una tabla con el texto y su respectivo url del enlace
 links_tables <- data.frame(Text = name_hyperlink, Url = url_hyperlink)
 
@@ -92,17 +97,21 @@ histogram <- ggplot(links_data, aes(x=Freq)) +
   geom_histogram(aes(fill=Url_type), 
                  binwidth = 1, 
                  position = "dodge") +
+  # Cambiando el nombre de la leyenda
   scale_fill_manual(name ="Tipo de Url", values=c("#FF5733", "#6B33FF")) +
   labs(x = "Frecuencia de apariciones", y = "N° de enlaces", title ="Enlaces MediaWiki") +
-  scale_y_continuous(limits = c(0, 200), 
-                     breaks = seq(0, 200, 40), 
-                     expand = c(0, 0)) 
-  theme_light()+
-  theme(plot.title = element_text(hjust = 0.5, size = 12))
+  scale_y_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, 10), 
+                     expand = c(0, 0)) +
+  theme_light() +
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  # Incorporando valores a cada barra
+  geom_text(aes(x = Freq, y = ..count.., label = ..count..,group = Url_type), 
+            stat = "count", vjust= -0.5, hjust = 0.7, size=4)
 
-# Mostrando el histograma
+
+# Mostrando el histograma<
 grid.arrange(histogram, ncol=1)
-
 
 
 # Pregunta 2.2 
@@ -117,8 +126,11 @@ bar_graphic <- ggplot(data.frame(Domain_Type = names(freq_link), count = as.nume
   geom_bar(stat="identity") +
   labs(title="Enlaces Internos vs Externos", x="Tipo de enlace", y="Cantidad") +
   theme_light() +
+  # Cambiando el nombre de la leyenda
   scale_fill_manual( name = "Tipo de dominio", values = c("#6833FF", "#D433FF")) +
   scale_y_continuous(limits = c(0, 150), breaks = seq(0, 150, 20)) +
+  # Incorporando valores en cada barra
+  geom_text(aes(label=count), vjust=-0.5, size=5) +
   theme(plot.title = element_text(hjust = 0.5, size = 18))
 
 grid.arrange(bar_graphic, ncol=1)
