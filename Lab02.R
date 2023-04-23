@@ -52,7 +52,7 @@ url_hyperlink  <- unlist(url_hyperlink)
 # Se realiza la eliminación de los espacios al inicio
 name_hyperlink <- str_replace(name_hyperlink, "^\\s+", "")
 # Creando una tabla con el texto y su respectivo url del enlace
-links_tables <- data.frame(Text = name_hyperlink, Url = url_hyperlink)
+links_tables <- data.frame(Text = name_hyperlink, Url = url_hyperlink) %>% arrange(Text)
 
 # Pregunta 1.4 
 
@@ -98,12 +98,16 @@ histogram <- ggplot(links_data, aes(x=Freq)) +
                  binwidth = 1, 
                  position = "dodge") +
   # Cambiando el nombre de la leyenda
-  scale_fill_manual(name ="Tipo de Url", values=c("#FF5733", "#6B33FF")) +
-  labs(x = "Frecuencia de apariciones", y = "N° de enlaces", title ="Enlaces MediaWiki") +
+  scale_fill_manual(values=c("#fe8b05","#fe0557"), name = "Tipo de Url") +
+  # Incroporando los  nombres para los ejes x y y, y el título del gráfico
+  labs(x = "Frecuencia", y = "N° de enlaces", title ="Enlaces absolutos vs relativos") +
+  # Escala del número de enlaces
   scale_y_continuous(limits = c(0, 100), 
                      breaks = seq(0, 100, 10), 
                      expand = c(0, 0)) +
+  # Creando fondo con líneas de cuadrícula
   theme_light() +
+  # Ajustando la ubicación del título
   theme(plot.title = element_text(hjust = 0.5, size = 12)) +
   # Incorporando valores a cada barra
   geom_text(aes(x = Freq, y = ..count.., label = ..count..,group = Url_type), 
@@ -122,17 +126,21 @@ links_data$Domain_Type <- ifelse(grepl("^https://www.mediawiki.org", links_data$
 # Hallando la frecuencia
 freq_link <- table(links_data$Domain_Type)
 # Mostrando gráfica de barras
+# Dibujando la gráfica en base al tipo de dominio si es externo o interno y su cantidad
 bar_graphic <- ggplot(data.frame(Domain_Type = names(freq_link), count = as.numeric(freq_link)), aes(x=Domain_Type, y=count, fill = Domain_Type)) +  
+  # Creación del gráfico de barras
   geom_bar(stat="identity") +
-  labs(title="Enlaces Internos vs Externos", x="Tipo de enlace", y="Cantidad") +
+  # Títulos para los ejes x e y, y el título de la gráfica
+  labs(title="Enlaces Internos vs Externos", x="Tipo de dominio", y="Cantidad") +
   theme_light() +
   # Cambiando el nombre de la leyenda
-  scale_fill_manual( name = "Tipo de dominio", values = c("#6833FF", "#D433FF")) +
+  scale_fill_manual( name = "Tipo de dominio", values = c("#5e5473", "#19b5a5")) +
   scale_y_continuous(limits = c(0, 150), breaks = seq(0, 150, 20)) +
   # Incorporando valores en cada barra
   geom_text(aes(label=count), vjust=-0.5, size=5) +
+  # Ajustando ubicación del título
   theme(plot.title = element_text(hjust = 0.5, size = 18))
-
+# Mostrando la gráfica
 grid.arrange(bar_graphic, ncol=1)
 
 # Pregunta 2.3
@@ -146,8 +154,10 @@ code_data <- data.frame(Status_Code = names(code_freq),Percentage = percentage_v
 
 # Mostrando pie chart
 chart_graphic <- ggplot(code_data, aes(x="", y=Percentage, fill=Status_Code)) +
+  # Gráfico chart pie
   geom_bar(width = 1, stat = "identity") +
   coord_polar("y", start=0) +
+  # Titulo del gráfico
   ggtitle("Códigos de estados de respuesta") +
   theme_void() +
   geom_text(aes(label = paste0(Percentage, "%")), position = position_stack(vjust = 0.5), size = 3) +

@@ -33,6 +33,11 @@ library(stringr)
 
 1. Descargar la página web de la URL indicada, y almacenarlo en un formato de R apto para ser tratado.
 
+**Resolución:**
+
+Se utiliza la función **htmlParse()** para procesar el contenido de la url 
+https://www.mediawiki.org/wiki/MediaWiki. La resolución se encuentra en el siguiente código.
+
 ```{r web_page, echo = TRUE}
 # Almacenando la URl 
 html <- GET("https://www.mediawiki.org/wiki/MediaWiki")
@@ -44,6 +49,11 @@ parsedHtml <- htmlParse(contenido, asText = TRUE)
 
 2. Analizar el contenido de la web, buscando el título de la página (que en HTML se etiqueta como “title”).
 
+**Resolución:**
+
+El título de la web, se ubica con la función **xpathSApply()** que nos ayuda a extraer
+la información. Esta función tine la variable **xpath** que selecciona todo los elementos "title" y el parámeto xmlValue brinda el valor del elemento "title". El resulatdo es **MediaWiki** y todo lo mencionado se realizó con el siguiente código.
+
 ```{r title, eval= TRUE, echo = TRUE}
 # Obteniendo el título de la web
 xpath <- "//title"
@@ -54,6 +64,20 @@ cat("Título de la Página Web:\n")
 cat(titulos, sep = "\n")
 ```
 3. Analizar el contenido de la web, buscando todos los enlaces (que en HTML se etiquetan como “a”), buscando el texto del enlace, así como la URL.
+
+**Resolución:**
+
+Para obtener la url y el texto de la etiqueta <a></a>, se utilizó la función **xpathSApply()** para extraer la información, donde se utiliza el parámetro **xmlValue** para extraer el texto de la etiqueta y el parámetro **xmlGetAttr** para obtener la url de la etiqueta.
+
+Por otro lado, se realiza las validaciones si en caso hubiese valores null para incorporar el valor NA a tráves de la función **sapply()**. Luego como los elementos
+se encuentran en una lista se procede a convertirlos a vector con la función **unlist()** para realizar manipulaciones posteriormente. También, se valido que
+existen algunos textos de la etiqueta <a></a> que tienen al principio un espacio y
+son iguales a otras que no lo tienen, se realizó la eliminación del espacio con la 
+función **str_replace()**.
+
+Finalmente se crea una tabla con los textos (columna Text) y urls (columna Url) de la etiqueta <a></a> con la función **data.frame()**, esta se guarda en la variable **links_tables**.
+
+A continuación se muestra el código con el cual se realizó lo mencionado.
 
 ```{r link, echo = TRUE}
 # Extrayendo los nombres de la etiqueta <a></a>
@@ -76,34 +100,54 @@ url_hyperlink  <- unlist(url_hyperlink)
 # Se valida que hay texto que tiene al principio espacios pero son iguales
 # Se realiza la eliminación de los espacios al inicio
 name_hyperlink <- str_replace(name_hyperlink, "^\\s+", "")
-# Creando una tabla con el texto y su respectivo url del enlace
-links_tables <- data.frame(Text = name_hyperlink, Url = url_hyperlink)
 
+# Creando una tabla con el texto y su respectivo url del enlace
+links_tables <- data.frame(Text = name_hyperlink, Url = url_hyperlink) %>% arrange(Text)
+# Visualización de la tabla en el archivo pdf
 kable(links_tables)
 
 ```
 4. Generar una tabla con cada enlace encontrado, indicando el texto que acompaña el enlace, y el número de veces que aparece un enlace con ese mismo objetivo.
+
+**Resolución:**
+
+En este caso se uso la función **table()** para obtener la tabla de repeticiones
+del texto acompañado de la Url. En base a ello se realiza un filtro donde la frecuencia
+sea mayor a 0 para considerar solo el texto con su respectiva url que existen y lo
+ordenamos en orden alfabético con la función **arrange()**. Esta nueva tabla figura 
+con la variable **links_data**. Todo ello se realizó con el siguiente código.
+
 
 ```{r link_table, echo = TRUE}
 
 # Convirtiendo a data.frame y hallando el n° de repeticiones
 concurrences <- as.data.frame(table(links_tables))
 
-# Filtrando solo los enlaces existentes, es decir todos lo que tenga >0 en la columna freq y lo ordenamos en orden alfábetico
+# Filtrando solo los enlaces existentes, es decir todos lo que tenga >0 
+# en la columna freq y lo ordenamos en orden alfábetico
 links_data <- filter(concurrences, Freq > 0) %>% arrange(Text)
+# Visualización de la tabla en el archivo pdf
 kable(links_data)
 
 ```
 5. Para cada enlace, seguirlo e indicar si está activo (podemos usar el código de status HTTP al hacer una petición a esa URL).
 
-```{r status_code, echo = TRUE}
+**Resolución:**
+
+Primero se procede a obtener los enlaces completos, para ello se valida que valores de la columna Url tiene https y las que no para completarlos con "https" con la función **case_when()** y se realiza la unión con la función **paste()**. Las urls completas
+se guardan en la columna **Url_final**.
+
+Luego para obtener el código de respuesta de cada url, se realiza el recorrido con la función **map()** y se aplica la función **HEAD()** para obtener el código de respuesta con el parámetro **status_code**. Ese valor se guarda en la columna **Status_Code**. Lo mencionado se realizó con el siguiente código.
+
+```{r status_code, echo = TRUE, out.width = "80%"}
 # Agregando la URL completa 
 base_url <- "https://www.mediawiki.org"
 
 # Validando los carácteres al inicio de la columna URL y uniendolo con la url base
 links_data$Final_Url <- case_when(
   # validando los carácteres al inicio de la URL
-  grepl("^/wiki/|^/w/|^//", links_data$Url) | grepl("^#", links_data$Url) ~ paste0(base_url, links_data$Url),
+  grepl("^/wiki/|^/w/|^//", links_data$Url) |
+  grepl("^#", links_data$Url) ~ paste0(base_url, links_data$Url),
   grepl("^https", links_data$Url) ~ links_data$Url,
   TRUE ~ NA_character_
 )
@@ -117,14 +161,22 @@ status_codes <- map(links_data$Final_Url, HEAD)
 links_data$Status_Code <- map(status_codes, status_code)
 # Convirtiendo de lista a character
 links_data$Status_Code <- as.character(links_data$Status_Code)
+# Visualización de la tabla en el archivo pdf
 kable(links_data)
 cat("Proceso terminado \n")
 
 ```
 ### Pregunta 2
-1. Un histograma con la frecuencia de aparición de los enlaces, pero separado por URLs absolutas (con “http…”) y URLs relativas
 
-```{r histogram, echo = TRUE}
+1. Un histograma con la frecuencia de aparición de los enlaces, pero separado por URLs absolutas (con “http…”) y URLs relativas.
+
+**Resolución:**
+
+Para esta pregunta se creó una nueva columna llamada **Url_type** donde se valida si
+hay enlaces absolutas o relativas con la función **grepl()**. Luego se utiliza la función **ggplot()** y **geom_histogram()** para mostrar el histograma, el cual el n° de enlaces está en el eje Y y la frecuencia en el eje x. Lo mencionado se encuentra el siguiente código.
+
+
+```{r histogram, echo = TRUE, warning=FALSE}
 # Validando si la URL es absoluta o relativa
 links_data$Url_type <- ifelse(grepl("^http", links_data$Url), "URL_Absoluta", "URL_Relativa")
 
@@ -134,23 +186,31 @@ histogram <- ggplot(links_data, aes(x=Freq)) +
                  binwidth = 1, 
                  position = "dodge") +
   # Cambiando el nombre de la leyenda
-  scale_fill_manual(name ="Tipo de Url", values=c("#FF5733", "#6B33FF")) +
-  labs(x = "Frecuencia de apariciones", y = "N° de enlaces", title ="Enlaces MediaWiki") +
+  scale_fill_manual(values=c("#fe8b05","#fe0557"), name = "Tipo de Url") +
+  # Incroporando los  nombres para los ejes x y y, y el título del gráfico
+  labs(x = "Frecuencia", y = "N° de enlaces", title ="Enlaces absolutos vs relativos") +
+  # Escala del número de enlaces
   scale_y_continuous(limits = c(0, 100), 
                      breaks = seq(0, 100, 10), 
                      expand = c(0, 0)) +
+  # Creando fondo con líneas de cuadrícula
   theme_light() +
+  # Ajustando la ubicación del título
   theme(plot.title = element_text(hjust = 0.5, size = 12)) +
   # Incorporando valores a cada barra
   geom_text(aes(x = Freq, y = ..count.., label = ..count..,group = Url_type), 
             stat = "count", vjust= -0.5, hjust = 0.7, size=4)
 
-# Mostrando el histograma
 
- grid.arrange(histogram, ncol=1)
-
+# Mostrando el histograma<
+grid.arrange(histogram, ncol=1)
 ```
+
 2. Un gráfico de barras indicando la suma de enlaces que apuntan a otros dominios o servicios (distinto a https://www.mediawiki.org en el caso de ejemplo) vs. la suma de los otros enlaces.
+
+**Resolución:**
+
+Se realizó la validación con el dominio "https://www.mediawiki.org" para determinar si la url es externa o interna y se incorporó un nueva columna llama **Domain_Type** con los valores. Luego se determino el n° d repeticiones con la función **table()** y con la función **ggplot()** y **geom_bar()** para mostrar el gráfico de barras, el cual en el eje x tiene los tipos de dominio y en el eje y la cantidad. Todo ello se realizó con el siguiente código.
 
 ```{r bar_graphic, echo = TRUE}
 
@@ -160,24 +220,30 @@ links_data$Domain_Type <- ifelse(grepl("^https://www.mediawiki.org", links_data$
 # Hallando la frecuencia
 freq_link <- table(links_data$Domain_Type)
 
-# Hallando la frecuencia
-freq_link <- table(links_data$Domain_Type)
 
 # Mostrando gráfica de barras
+# Dibujando la gráfica en base al tipo de dominio si es externo o interno y su cantidad
 bar_graphic <- ggplot(data.frame(Domain_Type = names(freq_link), count = as.numeric(freq_link)), aes(x=Domain_Type, y=count, fill = Domain_Type)) +  
+  # Creación del gráfico de barras
   geom_bar(stat="identity") +
-  labs(title="Enlaces Internos vs Externos", x="Tipo de enlace", y="Cantidad") +
+  # Títulos para los ejes x e y, y el título de la gráfica
+  labs(title="Enlaces Internos vs Externos", x="Tipo de dominio", y="Cantidad") +
   theme_light() +
   # Cambiando el nombre de la leyenda
-  scale_fill_manual( name = "Tipo de dominio", values = c("#6833FF", "#D433FF")) +
+  scale_fill_manual( name = "Tipo de dominio", values = c("#5e5473", "#19b5a5")) +
   scale_y_continuous(limits = c(0, 150), breaks = seq(0, 150, 20)) +
   # Incorporando valores en cada barra
   geom_text(aes(label=count), vjust=-0.5, size=5) +
+  # Ajustando ubicación del título
   theme(plot.title = element_text(hjust = 0.5, size = 18))
-
+# Mostrando la gráfica
 grid.arrange(bar_graphic, ncol=1)
 ```
 3. Un gráfico de tarta (pie chart) indicando los porcentajes de Status de nuestro análisis.
+
+**Resolución:**
+
+Para este gráfico es necesario hallar los porcentajes se utiliza la función **prop.table()** y **round()**. Luego  se utiliza las funciones **ggplot()** y **geom_bar()** para el gráfico respectivo. Todo ello se encuentra en el siguiente código con su respectivo detalle.
 
 ```{r chart_graphic, echo = TRUE}
 # Hallando la frecuencia del status_code
@@ -190,19 +256,26 @@ code_data <- data.frame(Status_Code = names(code_freq),Percentage = percentage_v
 
 # Mostrando pie chart
 chart_graphic <- ggplot(code_data, aes(x="", y=Percentage, fill=Status_Code)) +
+  # Gráfico chart pie
   geom_bar(width = 1, stat = "identity") +
   coord_polar("y", start=0) +
+  # Titulo del gráfico
   ggtitle("Códigos de estados de respuesta") +
   theme_void() +
+  # Incorporando los porcentajes
   geom_text(aes(label = paste0(Percentage, "%")), position = position_stack(vjust = 0.5), size = 3) +
+  # Nombre de la leyenda y colores del gráfico
   scale_fill_manual(name = "Código de respuesta" ,values=c("#cf3a69", "#7caa96")) +
-  theme(plot.title = element_text(hjust = 0.5, vjust = 1, size = 16))
+  # Ubicación del título
+  theme(plot.title = element_text(hjust = 0.5, vjust = 1, size = 18))
 
 # Mostrando la gráfica
 grid.arrange(chart_graphic, ncol=1)
 
+
 ```
 
+Para mostrar los gráficos en uno solo, se usa la función **grid.arrange()**
 
 ```{r last_graphic, echo = TRUE, fig.width=6, fig.height=12}
 
