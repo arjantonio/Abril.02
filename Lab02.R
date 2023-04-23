@@ -160,8 +160,11 @@ chart_graphic <- ggplot(code_data, aes(x="", y=Percentage, fill=Status_Code)) +
   # Titulo del gráfico
   ggtitle("Códigos de estados de respuesta") +
   theme_void() +
+  # Incorporando los porcentajes
   geom_text(aes(label = paste0(Percentage, "%")), position = position_stack(vjust = 0.5), size = 3) +
+  # Nombre de la leyenda y colores del gráfico
   scale_fill_manual(name = "Código de respuesta" ,values=c("#cf3a69", "#7caa96")) +
+  # Ubicación del título
   theme(plot.title = element_text(hjust = 0.5, vjust = 1, size = 18))
 
 # Mostrando la gráfica
