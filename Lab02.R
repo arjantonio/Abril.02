@@ -62,7 +62,7 @@ links_data <- filter(concurrences, Freq > 0) %>% arrange(Text)
 # Agregando la URL completa 
 base_url <- "https://www.mediawiki.org"
 
-# Validando los carácteres al inicio de la columna URL
+# Validando los carácteres al inicio de la columna URL y uniendolo con la url base
 links_data$Final_Url <- case_when(
   # validando los carácteres al inicio de la URL
   grepl("^/wiki/|^/w/|^//", links_data$Url) | grepl("^#", links_data$Url) ~ paste0(base_url, links_data$Url),
@@ -86,20 +86,25 @@ cat("Proceso terminado \n")
 # Pregunta 2.1
 # Validando si la URL es absoluta o relativa
 links_data$Url_type <- ifelse(grepl("^http", links_data$Url), "URL_Absoluta", "URL_Relativa")
-# Agregando la gráfica histograma
+
+# Agregando la gráfica histograma general
 histogram <- ggplot(links_data, aes(x=Freq)) + 
   geom_histogram(aes(fill=Url_type), 
                  binwidth = 1, 
                  position = "dodge") +
   scale_fill_manual(name ="Tipo de Url", values=c("#FF5733", "#6B33FF")) +
   labs(x = "Frecuencia de apariciones", y = "N° de enlaces", title ="Enlaces MediaWiki") +
-  scale_y_continuous(limits = c(0, 100), 
-                     breaks = seq(0, 100, 10), 
-                     expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 200), 
+                     breaks = seq(0, 200, 40), 
+                     expand = c(0, 0)) 
   theme_light()+
-  theme(plot.title = element_text(hjust = 0.5, size = 18))
- 
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+# Mostrando el histograma
 grid.arrange(histogram, ncol=1)
+
+
+
 # Pregunta 2.2 
 
 # Añadiendo si el link es interno o externo
@@ -136,9 +141,12 @@ chart_graphic <- ggplot(code_data, aes(x="", y=Percentage, fill=Status_Code)) +
   geom_text(aes(label = paste0(Percentage, "%")), position = position_stack(vjust = 0.5), size = 3) +
   scale_fill_manual(name = "Código de respuesta" ,values=c("#cf3a69", "#7caa96")) +
   theme(plot.title = element_text(hjust = 0.5, vjust = 22, size = 18))
+
+# Mostrando la gráfica
 grid.arrange(chart_graphic, ncol=1)
 
 # Mostrando las tres gráficas en una sola figura
-grid.arrange(histogram, bar_graphic, chart_graphic, ncol=3)
+grid.arrange(histogram, bar_graphic, chart_graphic, ncol=1, heights = c(10, 10, 6))
 cat("Fin\n")
+# Visualización de la tabla final
 View(links_data)
