@@ -20,3 +20,5 @@ Resolución de la práctica 02 a tráves del lenguaje R
 
 * Instalar las librerias GET(), httr(), rvest(), XML() 
 * Ejecutar el archivo Lab02.R en RStudio
+
+La resolución de la práctia se encuentra en el archivo Practica2.pdf
