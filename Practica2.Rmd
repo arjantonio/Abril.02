@@ -121,7 +121,30 @@ kable(links_data)
 cat("Proceso terminado \n")
 
 ```
+### Pregunta 2
+1. Un histograma con la frecuencia de aparición de los enlaces, pero separado por URLs absolutas (con “http…”) y URLs relativas
 
+```{r histogram, echo = TRUE}
+# Validando si la URL es absoluta o relativa
+links_data$Url_type <- ifelse(grepl("^http", links_data$Url), "URL_Absoluta", "URL_Relativa")
+# Agregando la gráfica histograma
+histogram <- ggplot(links_data, aes(x=Freq)) + 
+  geom_histogram(aes(fill=Url_type), 
+                 binwidth = 1, 
+                 position = "dodge") +
+  scale_fill_manual(name ="Tipo de Url", values=c("#FF5733", "#6B33FF")) +
+  labs(x = "Frecuencia de apariciones", y = "N° de enlaces", title ="Enlaces MediaWiki") +
+  scale_y_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, 10), 
+                     expand = c(0, 0)) +
+  theme_light()+
+  theme(plot.title = element_text(hjust = 0.5, size = 18))
+
+# Mostrando el histograma
+ grid.arrange(histogram, ncol=1)
+
+
+```
 
 ```{r cars}
 html <- GET("https://www.mediawiki.org/wiki/MediaWiki")
