@@ -140,13 +140,13 @@ chart_graphic <- ggplot(code_data, aes(x="", y=Percentage, fill=Status_Code)) +
   theme_void() +
   geom_text(aes(label = paste0(Percentage, "%")), position = position_stack(vjust = 0.5), size = 3) +
   scale_fill_manual(name = "Código de respuesta" ,values=c("#cf3a69", "#7caa96")) +
-  theme(plot.title = element_text(hjust = 0.5, vjust = 22, size = 18))
+  theme(plot.title = element_text(hjust = 0.5, vjust = 1, size = 18))
 
 # Mostrando la gráfica
 grid.arrange(chart_graphic, ncol=1)
 
 # Mostrando las tres gráficas en una sola figura
-grid.arrange(histogram, bar_graphic, chart_graphic, ncol=1, heights = c(10, 10, 6))
+grid.arrange(histogram, bar_graphic, chart_graphic, ncol=1)
 cat("Fin\n")
 # Visualización de la tabla final
 View(links_data)
